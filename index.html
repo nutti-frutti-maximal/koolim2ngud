@@ -91,6 +91,16 @@
   // ================== SEADISTUS ==================
   // Asenda siia oma Google Apps Scripti Web App URL:
   const GOOGLE_SCRIPT_URL = "SIESTA_OMA_GOOGLE_APPS_SCRIPT_URL";
+  const MANGU_PIN = "KEVADE2027"; // Määra siia oma kood
+
+function startGame() {
+  const pinInput = prompt("Sisesta stardikood:");
+  if (pinInput !== MANGU_PIN) {
+    alert("Vale kood! Küsi õpetajalt õige stardikood.");
+    return;
+  }
+  // ... siit edasi läheb mäng tavapäraselt lahti
+}
 
   // Kontrollpunkti koordinaadid (näidiseks Tallinna Vabaduse väljak, asenda oma asukohaga):
   const TARGET_COORDS = { lat: 59.4335, lng: 24.7453 };
@@ -120,13 +130,40 @@
     return Math.round(R * c);
   }
 
-  function startGame() {
-    const input = document.getElementById("team-input").value.trim();
-    if (!input) return alert("Palun sisesta tiimi nimi!");
-    teamName = input;
+ // function startGame() {
+    // const input = document.getElementById("team-input").value.trim();
+    // if (!input) return alert("Palun sisesta tiimi nimi!");
+    // teamName = input;
 
-    document.getElementById("step-start").style.display = "none";
-    document.getElementById("step-game").style.display = "block";
+   // document.getElementById("step-start").style.display = "none";
+    // document.getElementById("step-game").style.display = "block";
+
+  function startGame() {
+  const input = document.getElementById("team-input").value.trim();
+  if (!input) return alert("Palun sisesta tiimi nimi!");
+
+  // PIN-koodi kontroll
+  const pinInput = prompt("Sisesta õpetaja antud stardikood:");
+  if (pinInput !== MANGU_PIN) {
+    alert("Vale kood! Mängu ei saa alustada.");
+    return;
+  }
+
+  teamName = input;
+
+  document.getElementById("step-start").style.display = "none";
+  document.getElementById("step-game").style.display = "block";
+
+  // Taimeri käivitamine
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+    const secs = String(secondsElapsed % 60).padStart(2, '0');
+    document.getElementById("timer-display").innerText = `${mins}:${secs}`;
+  }, 1000);
+
+  initGpsTracking();
+}
 
     // Taimeri käivitamine
     timerInterval = setInterval(() => {
