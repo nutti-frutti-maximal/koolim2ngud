@@ -15,13 +15,14 @@
     .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 14px; background: #fafafa; }
     button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; color: #fff; background: #1976d2; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
     button:disabled { background: #b0bec5; cursor: not-allowed; }
-    input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-top: 6px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-top: 6px; margin-bottom: 10px; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
     .badge-locked { background: #ffebee; color: #c62828; }
     .badge-open { background: #e8f5e9; color: #2e7d32; }
     #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 8px; }
     .opt-btn { background: #fff; color: #1976d2; border: 1.5px solid #1976d2; margin-top: 6px; text-align: left; }
     .opt-btn:hover { background: #e3f2fd; }
+    .error-msg { color: #d32f2f; font-size: 0.85rem; font-weight: bold; margin-top: 4px; display: none; }
   </style>
 </head>
 <body>
@@ -29,12 +30,18 @@
 <div class="container">
   <h1>🌲 Rajamäng</h1>
 
-  <!-- 1. ETAPP: TIIMI REGISTREERIMINE -->
+  <!-- 1. ETAPP: TIIMI REGISTREERIMINE JA PIN -->
   <div id="step-start">
     <div class="card">
       <label><b>Tiimi või õpilase nimi:</b></label>
       <input type="text" id="team-input" placeholder="nt. Kiired Rebused">
-      <button onclick="startGame()">Alusta mängu</button>
+
+      <label><b>Mängu PIN-kood:</b></label>
+      <input type="password" id="pin-input" placeholder="Sisesta õpetaja antud kood">
+      
+      <div id="pin-error" class="error-msg">Vale PIN-kood! Küsi õpetajalt õige kood.</div>
+
+      <button type="button" onclick="startGame()">Alusta mängu</button>
     </div>
   </div>
 
@@ -55,9 +62,9 @@
       <p style="font-size:0.9rem;">Kaugus sihtpunktist: <b id="gps-distance">Mõõdan...</b></p>
       <div id="gps-question" style="display:none; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;">
         <p><b>Küsimus:</b> Mitu lehte on tammetõru mütsil?</p>
-        <button class="opt-btn" onclick="submitGpsAnswer(false)">A) Täpselt 10</button>
-        <button class="opt-btn" onclick="submitGpsAnswer(true)">B) See koosneb soomustest</button>
-        <button class="opt-btn" onclick="submitGpsAnswer(false)">C) 1 leht</button>
+        <button type="button" class="opt-btn" onclick="submitGpsAnswer(false)">A) Täpselt 10</button>
+        <button type="button" class="opt-btn" onclick="submitGpsAnswer(true)">B) See koosneb soomustest</button>
+        <button type="button" class="opt-btn" onclick="submitGpsAnswer(false)">C) 1 leht</button>
       </div>
     </div>
 
@@ -68,12 +75,12 @@
         <span id="qr-badge" class="badge badge-locked">Ootel</span>
       </div>
       <p style="font-size:0.9rem; color:#555; margin: 8px 0;">Otsi üles kontrollpunkti QR-kood ja skanni see kaameraga.</p>
-      <button id="qr-start-btn" onclick="startScanner()">Käivita kaamera</button>
+      <button type="button" id="qr-start-btn" onclick="startScanner()">Käivita kaamera</button>
       <div id="reader"></div>
       <div id="qr-result" style="display:none; margin-top: 10px; color: #2e7d32; font-weight: bold;"></div>
     </div>
 
-    <button id="finish-btn" style="background:#2e7d32; display:none;" onclick="finishGame()">Lõpeta mäng ja saada tulemus</button>
+    <button type="button" id="finish-btn" style="background:#2e7d32; display:none;" onclick="finishGame()">Lõpeta mäng ja saada tulemus</button>
   </div>
 
   <!-- 3. ETAPP: LÕPETATUD -->
@@ -89,23 +96,16 @@
 
 <script>
   // ================== SEADISTUS ==================
-  // Asenda siia oma Google Apps Scripti Web App URL:
+  // Määra siia oma mängu stardi PIN-kood:
+  const MANGU_PIN = "1234";
+
+  // Kleebi siia oma Google Apps Scripti Web App URL:
   const GOOGLE_SCRIPT_URL = "SIESTA_OMA_GOOGLE_APPS_SCRIPT_URL";
-  const MANGU_PIN = "KEVADE2027"; // Määra siia oma kood
 
-function startGame() {
-  const pinInput = prompt("Sisesta stardikood:");
-  if (pinInput !== MANGU_PIN) {
-    alert("Vale kood! Küsi õpetajalt õige stardikood.");
-    return;
-  }
-  // ... siit edasi läheb mäng tavapäraselt lahti
-}
-
-  // Kontrollpunkti koordinaadid (näidiseks Tallinna Vabaduse väljak, asenda oma asukohaga):
+  // Kontrollpunkti GPS koordinaadid ja raadius:
   const TARGET_COORDS = { lat: 59.4335, lng: 24.7453 };
-  const ACTIVATION_RADIUS_METERS = 20; // Raadius meetrites, millal punkt avaneb
-  const EXPECTED_QR_SECRET = "METS2026"; // QR-koodi sisu, mida otsitakse
+  const ACTIVATION_RADIUS_METERS = 20; 
+  const EXPECTED_QR_SECRET = "METS2026"; 
   // ===============================================
 
   let teamName = "";
@@ -115,7 +115,6 @@ function startGame() {
   let qrScannerInstance = null;
   let answersLog = {};
 
-  // Haversine'i valem kahe GPS punkti vahemaa arvutamiseks meetrites
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
     const phi1 = lat1 * Math.PI / 180;
@@ -130,40 +129,27 @@ function startGame() {
     return Math.round(R * c);
   }
 
- // function startGame() {
-    // const input = document.getElementById("team-input").value.trim();
-    // if (!input) return alert("Palun sisesta tiimi nimi!");
-    // teamName = input;
-
-   // document.getElementById("step-start").style.display = "none";
-    // document.getElementById("step-game").style.display = "block";
-
   function startGame() {
-  const input = document.getElementById("team-input").value.trim();
-  if (!input) return alert("Palun sisesta tiimi nimi!");
+    const nameInput = document.getElementById("team-input").value.trim();
+    const pinInput = document.getElementById("pin-input").value.trim();
+    const pinError = document.getElementById("pin-error");
 
-  // PIN-koodi kontroll
-  const pinInput = prompt("Sisesta õpetaja antud stardikood:");
-  if (pinInput !== MANGU_PIN) {
-    alert("Vale kood! Mängu ei saa alustada.");
-    return;
-  }
+    if (!nameInput) {
+      alert("Palun sisesta tiimi nimi!");
+      return;
+    }
 
-  teamName = input;
+    // PIN-koodi kontroll
+    if (pinInput !== MANGU_PIN) {
+      pinError.style.display = "block";
+      return;
+    }
+    pinError.style.display = "none";
 
-  document.getElementById("step-start").style.display = "none";
-  document.getElementById("step-game").style.display = "block";
+    teamName = nameInput;
 
-  // Taimeri käivitamine
-  timerInterval = setInterval(() => {
-    secondsElapsed++;
-    const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
-    const secs = String(secondsElapsed % 60).padStart(2, '0');
-    document.getElementById("timer-display").innerText = `${mins}:${secs}`;
-  }, 1000);
-
-  initGpsTracking();
-}
+    document.getElementById("step-start").style.display = "none";
+    document.getElementById("step-game").style.display = "block";
 
     // Taimeri käivitamine
     timerInterval = setInterval(() => {
@@ -176,7 +162,6 @@ function startGame() {
     initGpsTracking();
   }
 
-  // Reaalajas GPS jälgimine
   function initGpsTracking() {
     if (!navigator.geolocation) {
       document.getElementById("gps-distance").innerText = "GPS ei ole toetatud!";
@@ -199,7 +184,7 @@ function startGame() {
         }
       },
       (err) => {
-        document.getElementById("gps-distance").innerText = "Viga asukoha tuvastamisel (luba asukoht).";
+        document.getElementById("gps-distance").innerText = "Luba asukohateenus (GPS).";
       },
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
     );
@@ -210,21 +195,19 @@ function startGame() {
       score += 10;
       alert("Õige vastus! +10 punkti");
     } else {
-      alert("Kahjuks vale vastus, aga punkt on läbitud!");
+      alert("Vale vastus, aga liigume edasi!");
     }
     answersLog["punkt1_gps"] = isCorrect ? "õige" : "vale";
     document.getElementById("score-display").innerText = score;
     document.getElementById("gps-question").style.display = "none";
     document.getElementById("gps-badge").innerText = "Tehtud";
 
-    // Aktiveeri järgmine etapp (QR-kood)
     const qrCard = document.getElementById("task-qr");
     qrCard.style.opacity = "1";
     qrCard.style.pointerEvents = "auto";
     document.getElementById("qr-badge").innerText = "Aktiivne";
   }
 
-  // Kaamera ja QR koodi lugemine
   function startScanner() {
     document.getElementById("qr-start-btn").style.display = "none";
     qrScannerInstance = new Html5Qrcode("reader");
@@ -249,13 +232,12 @@ function startGame() {
           alert("Vale QR-kood! Otsi õiget tähist.");
         }
       },
-      (errorMessage) => { /* Kaadri lugemise ebaõnnestumised vahele jätta */ }
+      (errorMessage) => { }
     ).catch(err => {
-      alert("Kaamera avamine ebaõnnestus. Kontrolli brauseri õigusi!");
+      alert("Kaamera avamine ebaõnnestus. Kontrolli õigusi!");
     });
   }
 
-  // Lõpetamine ja saatmine Google Sheetile
   function finishGame() {
     clearInterval(timerInterval);
     document.getElementById("step-game").style.display = "none";
@@ -276,15 +258,14 @@ function startGame() {
       answers: answersLog
     };
 
-    if (GOOGLE_SCRIPT_URL === "SIESTA_OMA_GOOGLE_APPS_SCRIPT_URL") {
-      document.getElementById("upload-status").innerText = "⚠️ Tulemust ei saadetud (Google Scripti URL seadistamata).";
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SIESTA_OMA")) {
+      document.getElementById("upload-status").innerText = "Tulemused ekraanil (Google tabeli URL pole veel sisestatud).";
       return;
     }
 
-    // Saada andmed Google Apps Scripti Web Appile
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
-      mode: "no-cors", // Oluline Google Apps Scripti puhul brauserist saatmisel
+      mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
@@ -292,8 +273,7 @@ function startGame() {
       document.getElementById("upload-status").innerText = "✓ Tulemused on edukalt salvestatud!";
     })
     .catch((err) => {
-      document.getElementById("upload-status").innerText = "⚠️ Võrguviga. Tulemused jäid lokaalselt mällu.";
-      console.error(err);
+      document.getElementById("upload-status").innerText = "⚠️ Võrguviga. Tulemused jäid seadmesse.";
     });
   }
 </script>
