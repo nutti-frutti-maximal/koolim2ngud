@@ -233,33 +233,38 @@
   }
 
   // Küsib Google'i serverist reaalajas ülesande sisu
+// Küsib küsimuse JSONP abil ilma brauseri CORS-blokeeringuta
   function loadTask(taskId) {
     const box = document.getElementById("box-" + taskId);
     box.style.display = "block";
     box.innerHTML = "<i>Laadin küsimust serverist...</i>";
 
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getTask&taskId=${taskId}`)
-      .then(res => res.json())
-      .then(data => {
-        let html = "";
-        if (data.img) html += `<img class="task-img" src="${data.img}">`;
-        html += `<p><b>${data.question}</b></p>`;
+    const callbackName = "handleTask_" + taskId + "_" + Date.now();
+    window[callbackName] = function(data) {
+      let html = "";
+      if (data.img) html += `<img class="task-img" src="${data.img}">`;
+      html += `<p><b>${data.question}</b></p>`;
 
-        if (data.options) {
-          data.options.forEach(opt => {
-            html += `<button type="button" class="opt-btn" onclick="sendAnswer('${taskId}', '${opt.replace(/'/g, "\\'")}')">${opt}</button>`;
-          });
-        } else {
-          html += `<input type="text" id="input-${taskId}" placeholder="Kirjuta vastus siia...">
-                   <button type="button" onclick="submitTextInput('${taskId}')">Kinnita vastus</button>`;
-        }
-        box.innerHTML = html;
-        document.getElementById("badge-" + taskId).className = "badge badge-open";
-        document.getElementById("badge-" + taskId).innerText = "Aktiivne";
-      })
-      .catch(() => {
-        box.innerHTML = "Viga küsimuse laadimisel. Kontrolli internetiühendust.";
-      });
+      if (data.options) {
+        data.options.forEach(opt => {
+          html += `<button type="button" class="opt-btn" onclick="sendAnswer('${taskId}', '${opt.replace(/'/g, "\\'")}')">${opt}</button>`;
+        });
+      } else {
+        html += `<input type="text" id="input-${taskId}" placeholder="Kirjuta vastus siia...">
+                 <button type="button" onclick="submitTextInput('${taskId}')">Kinnita vastus</button>`;
+      }
+      box.innerHTML = html;
+      document.getElementById("badge-" + taskId).className = "badge badge-open";
+      document.getElementById("badge-" + taskId).innerText = "Aktiivne";
+      delete window[callbackName];
+    };
+
+    const script = document.createElement("script");
+    script.src = `${GOOGLE_SCRIPT_URL}?action=getTask&taskId=${taskId}&callback=${callbackName}`;
+    script.onerror = function() {
+      box.innerHTML = "Viga küsimuse laadimisel. Kontrolli skripti aadressi.";
+    };
+    document.body.appendChild(script);
   }
 
   function submitTextInput(taskId) {
