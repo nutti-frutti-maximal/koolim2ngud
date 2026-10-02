@@ -332,7 +332,7 @@
     }).catch(() => alert("Kaamera viga!"));
   }
 
-  function finishGame() {
+function finishGame() {
     clearInterval(timerId);
     document.getElementById("step-game").style.display = "none";
     document.getElementById("step-end").style.display = "block";
@@ -344,18 +344,19 @@
     document.getElementById("final-score").innerText = score;
     document.getElementById("final-time").innerText = timeStr;
 
+    const payload = {
+      teamName: teamName + (isTeacher ? " [ÕPETAJA TEST]" : ""),
+      score: score,
+      durationSeconds: seconds,
+      durationText: timeStr,
+      answers: answers
+    };
+
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "finishGame",
-        teamName: teamName + (isTeacher ? " [ÕPETAJA TEST]" : ""),
-        score: score,
-        durationSeconds: seconds,
-        durationText: timeStr,
-        answers: answers
-      })
+      body: JSON.stringify(payload)
     })
     .then(() => {
       document.getElementById("upload-status").innerText = "✓ Tulemused on edukalt salvestatud tabelisse!";
