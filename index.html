@@ -71,9 +71,9 @@
       <div id="box-p1" style="display:none; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
         <img class="task-img" src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&auto=format&fit=crop" alt="Tamm">
         <p><b>Küsimus:</b> Millisesse sugukonda kuulub harilik tamm?</p>
-        <button type="button" class="opt-btn" onclick="sendAnswer('p1', 'Pöögilised (Fagaceae)')">A) Pöögilised (Fagaceae)</button>
-        <button type="button" class="opt-btn" onclick="sendAnswer('p1', 'Kaselised (Betulaceae)')">B) Kaselised (Betulaceae)</button>
-        <button type="button" class="opt-btn" onclick="sendAnswer('p1', 'Männilised (Pinaceae)')">C) Männilised (Pinaceae)</button>
+        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Pöögilised (Fagaceae)', true)">A) Pöögilised (Fagaceae)</button>
+        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Kaselised (Betulaceae)', false)">B) Kaselised (Betulaceae)</button>
+        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Männilised (Pinaceae)', false)">C) Männilised (Pinaceae)</button>
       </div>
     </div>
 
@@ -87,7 +87,7 @@
       <button type="button" id="btn-qr-p2" onclick="startScanner('p2')">Käivita kaamera</button>
       <div id="reader-p2"></div>
       
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="sendAnswer('p2', 'METS2026')">🛠️ [Test] Simuleeri õiget QR-koodi</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p2', 'METS2026', true)">🛠️ [Test] Simuleeri õiget QR-koodi</button>
       <div id="res-p2" style="display:none; margin-top:6px; font-weight:bold;"></div>
     </div>
 
@@ -99,9 +99,9 @@
       </div>
       <p style="font-size:0.85rem; color:#555; margin:6px 0;">Mitu astet viib peaukse juurest hoovi? Loenda üle ja kirjuta arv:</p>
       <input type="text" id="input-p3" placeholder="Kirjuta vastus siia...">
-      <button type="button" onclick="submitTextInput('p3')">Kinnita vastus</button>
+      <button type="button" onclick="submitP3()">Kinnita vastus</button>
 
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="sendAnswer('p3', '8')">🛠️ [Test] Sisesta testvastus (8)</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p3', '8', true)">🛠️ [Test] Sisesta testvastus (8)</button>
     </div>
 
     <!-- PUNKT 4: GPS + Vaatlusküsimus -->
@@ -113,12 +113,13 @@
       <p style="font-size:0.85rem; color:#555; margin:6px 0;">Liigu kooliaia juurde.</p>
       <div style="font-size:0.85rem;">Kaugus: <b id="dist-p4">Ootel...</b></div>
       
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="openP4()">🛠️ [Test] Ava vaatlus kohe</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="openP4()">🛠️️ [Test] Ava vaatlus kohe</button>
 
       <div id="box-p4" style="display:none; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
         <p><b>Vaatlus:</b> Mis värvi on kooliaia kasvuhoone uks või milline taim seal silma hakkab?</p>
         <input type="text" id="input-p4" placeholder="Kirjelda lühidalt...">
-        <button type="button" onclick="submitTextInput('p4')">Kinnita vaatlus</button>
+        <button type="button" onclick="submitP4()">Kinnita vaatlus</button>
+        <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p4', 'Roheline uks (Testvaatlus)', true)">🛠️ [Test] Kinnita testvaatlus</button>
       </div>
     </div>
 
@@ -132,7 +133,7 @@
       <button type="button" id="btn-qr-p5" onclick="startScanner('p5')">Käivita kaamera</button>
       <div id="reader-p5"></div>
 
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="sendAnswer('p5', 'FINIS2026')">🛠️ [Test] Simuleeri finišit</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p5', 'FINIS2026', true)">🛠️ [Test] Simuleeri finišit</button>
       <div id="res-p5" style="display:none; margin-top:6px; font-weight:bold;"></div>
     </div>
 
@@ -152,14 +153,12 @@
 
 <script>
   // ==================== SEADISTUS ====================
-  // SHA-256 räsid paroolidest (koodist ei saa paroole välja lugeda!)
   const HASH_OPILANE = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
   const HASH_OPETAJA = "888df25ae35772424a560c7152a1de794440e0ea5cfee62828333a456a506e05"; // 9999
 
-  // NB! Kontrolli, et siin oleks sinu Google Apps Scripti Web App URL:
+  // KONTROLLI OMA GOOGLE APPS SCRIPT URL-I:
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHfwflpTp9IINyqlPcFLiBcEbKaO0gRX__qo2_bQEYgzGWV4QZZrUQabpMGVYTB3HT5Q/exec";
 
-  // GPS koordinaadid (lat, lng):
   const COORDS_P1 = { lat: 59.4335, lng: 24.7453 };
   const COORDS_P4 = { lat: 59.4340, lng: 24.7460 };
   const RADIUS_M = 20;
@@ -171,7 +170,15 @@
   let seconds = 0;
   let timerId = null;
   let qrScanner = null;
-  let answers = { p1: "", p2: "", p3: "", p4: "", p5: "" };
+
+  // Siia kogunevad KÕIK vastused ja need ei saa kaduma minna
+  let allAnswers = {
+    p1: "",
+    p2: "",
+    p3: "",
+    p4: "",
+    p5: ""
+  };
 
   async function sha256(str) {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -257,45 +264,32 @@
     document.getElementById("badge-p4").innerText = "Aktiivne";
   }
 
-  function submitTextInput(taskId) {
-    const val = document.getElementById("input-" + taskId).value.trim();
+  function submitP3() {
+    const val = document.getElementById("input-p3").value.trim();
     if (!val) return alert("Palun kirjuta vastus!");
-    sendAnswer(taskId, val);
+    const isOk = (val === "8" || val.toLowerCase() === "kaheksa");
+    recordAnswer('p3', val, isOk);
   }
 
-  // Saadab vastuse Google'ile kontrolliks
-  function sendAnswer(taskId, userAnswer) {
+  function submitP4() {
+    const val = document.getElementById("input-p4").value.trim();
+    if (!val) return alert("Palun kirjuta vastus!");
+    recordAnswer('p4', val, true);
+  }
+
+  // Universaalne vastuse fikseerimise funktsioon
+  function recordAnswer(taskId, answerText, isCorrect) {
+    const pointsMap = { p1: 10, p2: 15, p3: 10, p4: 10, p5: 15 };
     const nextTaskMap = { p1: 'p2', p2: 'p3', p3: 'p4', p4: 'p5', p5: 'finish' };
 
-    fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "checkAnswer",
-        taskId: taskId,
-        userAnswer: userAnswer
-      })
-    });
-
-    // Kontrollime tulemust (kuna päring on POST, loeme vastuse loogika lokaalselt teadaoleva reegliga serveri sünkroonis)
-    // Server salvestab vastuse hiljem lõpliku raportina.
-    const isP1Correct = (taskId === "p1" && userAnswer.includes("Pöögilised"));
-    const isP2Correct = (taskId === "p2" && userAnswer.toUpperCase() === "METS2026");
-    const isP3Correct = (taskId === "p3" && (userAnswer === "8" || userAnswer.toLowerCase() === "kaheksa"));
-    const isP4Correct = (taskId === "p4");
-    const isP5Correct = (taskId === "p5" && userAnswer.toUpperCase() === "FINIS2026");
-
-    const isCorrect = isP1Correct || isP2Correct || isP3Correct || isP4Correct || isP5Correct;
-    const pts = (taskId === "p2" || taskId === "p5") ? 15 : 10;
-
+    // 1. Salvestame kohe vastuse kindlalt mällu
     if (isCorrect) {
-      score += pts;
-      alert(`Õige! (+${pts} punkti)`);
-      answers[taskId] = `${userAnswer} (õige)`;
+      score += pointsMap[taskId];
+      allAnswers[taskId] = `${answerText} (õige)`;
+      alert(`Õige! (+${pointsMap[taskId]} punkti)`);
     } else {
+      allAnswers[taskId] = `${answerText} (vale)`;
       alert("Vale vastus! Liigume edasi.");
-      answers[taskId] = `${userAnswer} (vale)`;
     }
 
     document.getElementById("score-display").innerText = score;
@@ -308,6 +302,7 @@
     const btnQr = document.getElementById("btn-qr-" + taskId);
     if (btnQr) btnQr.style.display = "none";
 
+    // 2. Avame järgmise punkti
     const next = nextTaskMap[taskId];
     if (next === 'finish') {
       document.getElementById("finish-btn").style.display = "block";
@@ -327,12 +322,17 @@
     qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
       qrScanner.stop().then(() => {
         document.getElementById("reader-" + taskId).style.display = "none";
-        sendAnswer(taskId, decodedText.trim());
+        const clean = decodedText.trim();
+        if (taskId === "p2") {
+          recordAnswer('p2', clean, clean.toUpperCase() === "METS2026");
+        } else if (taskId === "p5") {
+          recordAnswer('p5', clean, clean.toUpperCase() === "FINIS2026");
+        }
       });
     }).catch(() => alert("Kaamera viga!"));
   }
 
-function finishGame() {
+  function finishGame() {
     clearInterval(timerId);
     document.getElementById("step-game").style.display = "none";
     document.getElementById("step-end").style.display = "block";
@@ -344,18 +344,19 @@ function finishGame() {
     document.getElementById("final-score").innerText = score;
     document.getElementById("final-time").innerText = timeStr;
 
+    // Koostame kindla andmepaketi
     const payload = {
       teamName: teamName + (isTeacher ? " [ÕPETAJA TEST]" : ""),
       score: score,
       durationSeconds: seconds,
       durationText: timeStr,
-      answers: answers
+      answers: allAnswers
     };
 
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     })
     .then(() => {
@@ -363,7 +364,7 @@ function finishGame() {
       document.getElementById("upload-status").style.color = "#2e7d32";
     })
     .catch(() => {
-      document.getElementById("upload-status").innerText = "⚠️ Tulemused kuvatakse ekraanil (võrguviga).";
+      document.getElementById("upload-status").innerText = "⚠️️ Tulemused kuvatakse ekraanil (võrguviga).";
     });
   }
 </script>
