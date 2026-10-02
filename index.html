@@ -13,7 +13,6 @@
     .status-bar { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 14px; padding: 10px 12px; background: #e3f2fd; border-radius: 8px; font-weight: bold; }
     .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #fafafa; }
     button { width: 100%; padding: 11px; font-size: 0.95rem; font-weight: bold; color: #fff; background: #1976d2; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
-    button:disabled { background: #b0bec5; cursor: not-allowed; }
     input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-top: 6px; margin-bottom: 8px; }
     .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
     .badge-locked { background: #ffebee; color: #c62828; }
@@ -22,9 +21,10 @@
     .opt-btn { background: #fff; color: #1976d2; border: 1.5px solid #1976d2; margin-top: 6px; text-align: left; }
     .opt-btn:hover { background: #e3f2fd; }
     .dev-mode-banner { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; text-align: center; }
-    .dev-btn { background: #eceff1; color: #455a64; font-size: 0.8rem; padding: 6px; border: 1px dashed #90a4ae; margin-top: 8px; }
+    .dev-btn { background: #eceff1; color: #37474f; font-size: 0.8rem; padding: 8px; border: 1px dashed #78909c; margin-top: 6px; }
     .dev-btn:hover { background: #cfd8dc; }
     .task-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; margin: 8px 0; }
+    #debug-box { background: #263238; color: #aeea00; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; margin-top: 15px; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -57,7 +57,7 @@
       <span>Aeg: <b id="timer-display">00:00</b></span>
     </div>
 
-    <!-- PUNKT 1: GPS + Pildiga valikküsimus -->
+    <!-- PUNKT 1 -->
     <div class="card" id="card-p1">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b>1. Kontrollpunkt: Vana tamm</b>
@@ -66,45 +66,51 @@
       <p style="font-size:0.85rem; color:#555; margin:6px 0;">Liigu esimesse kontrollpunkti.</p>
       <div style="font-size:0.85rem;">Kaugus: <b id="dist-p1">Mõõdan...</b></div>
       
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="openP1()">🛠️ [Test] Ava küsimus kohe</button>
+      <!-- ÕPETAJA TESTNUPUD -->
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p1', 'Pöögilised (Fagaceae) [Õige]', 10)">🛠️ [Test] Märgi ÕIGEKS (+10p)</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p1', 'Kaselised [Vale]', 0)">🛠️ [Test] Märgi VALEKS (0p)</button>
 
       <div id="box-p1" style="display:none; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
         <img class="task-img" src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&auto=format&fit=crop" alt="Tamm">
         <p><b>Küsimus:</b> Millisesse sugukonda kuulub harilik tamm?</p>
-        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Pöögilised (Fagaceae)', true)">A) Pöögilised (Fagaceae)</button>
-        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Kaselised (Betulaceae)', false)">B) Kaselised (Betulaceae)</button>
-        <button type="button" class="opt-btn" onclick="recordAnswer('p1', 'Männilised (Pinaceae)', false)">C) Männilised (Pinaceae)</button>
+        <button type="button" class="opt-btn" onclick="saveAndAdvance('p1', 'Pöögilised (Fagaceae)', 10)">A) Pöögilised (Fagaceae)</button>
+        <button type="button" class="opt-btn" onclick="saveAndAdvance('p1', 'Kaselised (Betulaceae)', 0)">B) Kaselised (Betulaceae)</button>
+        <button type="button" class="opt-btn" onclick="saveAndAdvance('p1', 'Männilised (Pinaceae)', 0)">C) Männilised (Pinaceae)</button>
       </div>
     </div>
 
-    <!-- PUNKT 2: QR-kood -->
+    <!-- PUNKT 2 -->
     <div class="card" id="card-p2" style="opacity:0.4; pointer-events:none;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b>2. Kontrollpunkt: Salakood</b>
         <span id="badge-p2" class="badge badge-locked">Ootel</span>
       </div>
       <p style="font-size:0.85rem; color:#555; margin:6px 0;">Otsi üles kontrollpunkti QR-kood.</p>
+      
+      <!-- ÕPETAJA TESTNUPUD -->
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p2', 'METS2026 [QR Leitud]', 15)">🛠️ [Test] Simuleeri QR koodi (+15p)</button>
+
       <button type="button" id="btn-qr-p2" onclick="startScanner('p2')">Käivita kaamera</button>
       <div id="reader-p2"></div>
-      
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p2', 'METS2026', true)">🛠️ [Test] Simuleeri õiget QR-koodi</button>
       <div id="res-p2" style="display:none; margin-top:6px; font-weight:bold;"></div>
     </div>
 
-    <!-- PUNKT 3: Tekstiline küsimus -->
+    <!-- PUNKT 3 -->
     <div class="card" id="card-p3" style="opacity:0.4; pointer-events:none;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b>3. Kontrollpunkt: Peatrepp</b>
         <span id="badge-p3" class="badge badge-locked">Ootel</span>
       </div>
-      <p style="font-size:0.85rem; color:#555; margin:6px 0;">Mitu astet viib peaukse juurest hoovi? Loenda üle ja kirjuta arv:</p>
+      <p style="font-size:0.85rem; color:#555; margin:6px 0;">Mitu astet viib peaukse juurest hoovi? Loenda ja sisesta:</p>
       <input type="text" id="input-p3" placeholder="Kirjuta vastus siia...">
-      <button type="button" onclick="submitP3()">Kinnita vastus</button>
+      <button type="button" onclick="submitManualP3()">Kinnita vastus</button>
 
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p3', '8', true)">🛠️ [Test] Sisesta testvastus (8)</button>
+      <!-- ÕPETAJA TESTNUPUD -->
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p3', '8 astet [Õige]', 10)">🛠️ [Test] Sisesta õige (8) (+10p)</button>
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p3', '15 astet [Vale]', 0)">🛠️ [Test] Sisesta vale (15) (0p)</button>
     </div>
 
-    <!-- PUNKT 4: GPS + Vaatlusküsimus -->
+    <!-- PUNKT 4 -->
     <div class="card" id="card-p4" style="opacity:0.4; pointer-events:none;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b>4. Kontrollpunkt: Kooliaed</b>
@@ -112,32 +118,37 @@
       </div>
       <p style="font-size:0.85rem; color:#555; margin:6px 0;">Liigu kooliaia juurde.</p>
       <div style="font-size:0.85rem;">Kaugus: <b id="dist-p4">Ootel...</b></div>
-      
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="openP4()">🛠️️ [Test] Ava vaatlus kohe</button>
+
+      <!-- ÕPETAJA TESTNUPUD -->
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p4', 'Roheline kasvuhoone uks', 10)">🛠️ [Test] Kinnita näidisvaatlus (+10p)</button>
 
       <div id="box-p4" style="display:none; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
         <p><b>Vaatlus:</b> Mis värvi on kooliaia kasvuhoone uks või milline taim seal silma hakkab?</p>
         <input type="text" id="input-p4" placeholder="Kirjelda lühidalt...">
-        <button type="button" onclick="submitP4()">Kinnita vaatlus</button>
-        <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p4', 'Roheline uks (Testvaatlus)', true)">🛠️ [Test] Kinnita testvaatlus</button>
+        <button type="button" onclick="submitManualP4()">Kinnita vaatlus</button>
       </div>
     </div>
 
-    <!-- PUNKT 5: Finiši QR -->
+    <!-- PUNKT 5 -->
     <div class="card" id="card-p5" style="opacity:0.4; pointer-events:none;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b>5. Kontrollpunkt: Finiš</b>
         <span id="badge-p5" class="badge badge-locked">Ootel</span>
       </div>
-      <p style="font-size:0.85rem; color:#555; margin:6px 0;">Skanni finišijoone QR-kood seikluse lõpetamiseks.</p>
+      <p style="font-size:0.85rem; color:#555; margin:6px 0;">Skanni finišijoone QR-kood.</p>
+      
+      <!-- ÕPETAJA TESTNUPUD -->
+      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="saveAndAdvance('p5', 'FINIS2026 [Läbitud]', 15)">🛠️ [Test] Finišeeri (+15p)</button>
+
       <button type="button" id="btn-qr-p5" onclick="startScanner('p5')">Käivita kaamera</button>
       <div id="reader-p5"></div>
-
-      <button type="button" class="dev-btn dev-teacher" style="display:none;" onclick="recordAnswer('p5', 'FINIS2026', true)">🛠️ [Test] Simuleeri finišit</button>
       <div id="res-p5" style="display:none; margin-top:6px; font-weight:bold;"></div>
     </div>
 
     <button type="button" id="finish-btn" style="background:#2e7d32; display:none;" onclick="finishGame()">🏁 Lõpeta mäng ja salvesta tulemused</button>
+
+    <!-- SILUMISAKEN: näitab täpselt, mis on parasjagu mälus -->
+    <div id="debug-box">Mälus olevad vastused:<br><span id="debug-text">Pole veel vastuseid</span></div>
   </div>
 
   <!-- 3. TULEMUSED -->
@@ -156,7 +167,7 @@
   const HASH_OPILANE = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
   const HASH_OPETAJA = "888df25ae35772424a560c7152a1de794440e0ea5cfee62828333a456a506e05"; // 9999
 
-  // KONTROLLI OMA GOOGLE APPS SCRIPT URL-I:
+  // KONTROLLI OMA APPS SCRIPTI URL-i:
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHfwflpTp9IINyqlPcFLiBcEbKaO0gRX__qo2_bQEYgzGWV4QZZrUQabpMGVYTB3HT5Q/exec";
 
   const COORDS_P1 = { lat: 59.4335, lng: 24.7453 };
@@ -171,14 +182,21 @@
   let timerId = null;
   let qrScanner = null;
 
-  // Siia kogunevad KÕIK vastused ja need ei saa kaduma minna
-  let allAnswers = {
+  // Globaalne vastuste objekt
+  let answersLog = {
     p1: "",
     p2: "",
     p3: "",
     p4: "",
     p5: ""
   };
+
+  function updateDebugView() {
+    const el = document.getElementById("debug-text");
+    if (el) {
+      el.innerText = JSON.stringify(answersLog, null, 2);
+    }
+  }
 
   async function sha256(str) {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -220,6 +238,8 @@
     if (isTeacher) {
       document.getElementById("dev-banner").style.display = "block";
       document.querySelectorAll(".dev-teacher").forEach(el => el.style.display = "block");
+    } else {
+      document.getElementById("debug-box").style.display = "none";
     }
 
     timerId = setInterval(() => {
@@ -230,6 +250,7 @@
     }, 1000);
 
     initGps();
+    updateDebugView();
   }
 
   function initGps() {
@@ -241,58 +262,33 @@
       if (!document.getElementById("card-p1").dataset.done) {
         const d1 = distM(uLat, uLng, COORDS_P1.lat, COORDS_P1.lng);
         document.getElementById("dist-p1").innerText = `${d1} m`;
-        if (d1 <= RADIUS_M) openP1();
+        if (d1 <= RADIUS_M) {
+          document.getElementById("box-p1").style.display = "block";
+          document.getElementById("badge-p1").className = "badge badge-open";
+          document.getElementById("badge-p1").innerText = "Kohal!";
+        }
       }
 
       if (document.getElementById("card-p4").dataset.active && !document.getElementById("card-p4").dataset.done) {
         const d4 = distM(uLat, uLng, COORDS_P4.lat, COORDS_P4.lng);
         document.getElementById("dist-p4").innerText = `${d4} m`;
-        if (d4 <= RADIUS_M) openP4();
+        if (d4 <= RADIUS_M) {
+          document.getElementById("box-p4").style.display = "block";
+          document.getElementById("badge-p4").className = "badge badge-open";
+          document.getElementById("badge-p4").innerText = "Kohal!";
+        }
       }
     }, () => {}, { enableHighAccuracy: true });
   }
 
-  function openP1() {
-    document.getElementById("box-p1").style.display = "block";
-    document.getElementById("badge-p1").className = "badge badge-open";
-    document.getElementById("badge-p1").innerText = "Aktiivne";
-  }
+  // PÕHILINE FUNKTSIOON: Salvestab vastuse ja avab järgmise etapi
+  function saveAndAdvance(taskId, textValue, pts) {
+    const nextMap = { p1: 'p2', p2: 'p3', p3: 'p4', p4: 'p5', p5: 'finish' };
 
-  function openP4() {
-    document.getElementById("box-p4").style.display = "block";
-    document.getElementById("badge-p4").className = "badge badge-open";
-    document.getElementById("badge-p4").innerText = "Aktiivne";
-  }
-
-  function submitP3() {
-    const val = document.getElementById("input-p3").value.trim();
-    if (!val) return alert("Palun kirjuta vastus!");
-    const isOk = (val === "8" || val.toLowerCase() === "kaheksa");
-    recordAnswer('p3', val, isOk);
-  }
-
-  function submitP4() {
-    const val = document.getElementById("input-p4").value.trim();
-    if (!val) return alert("Palun kirjuta vastus!");
-    recordAnswer('p4', val, true);
-  }
-
-  // Universaalne vastuse fikseerimise funktsioon
-  function recordAnswer(taskId, answerText, isCorrect) {
-    const pointsMap = { p1: 10, p2: 15, p3: 10, p4: 10, p5: 15 };
-    const nextTaskMap = { p1: 'p2', p2: 'p3', p3: 'p4', p4: 'p5', p5: 'finish' };
-
-    // 1. Salvestame kohe vastuse kindlalt mällu
-    if (isCorrect) {
-      score += pointsMap[taskId];
-      allAnswers[taskId] = `${answerText} (õige)`;
-      alert(`Õige! (+${pointsMap[taskId]} punkti)`);
-    } else {
-      allAnswers[taskId] = `${answerText} (vale)`;
-      alert("Vale vastus! Liigume edasi.");
-    }
-
+    answersLog[taskId] = textValue;
+    score += pts;
     document.getElementById("score-display").innerText = score;
+
     document.getElementById("card-" + taskId).dataset.done = "true";
     document.getElementById("badge-" + taskId).className = "badge badge-done";
     document.getElementById("badge-" + taskId).innerText = "Läbitud";
@@ -302,8 +298,9 @@
     const btnQr = document.getElementById("btn-qr-" + taskId);
     if (btnQr) btnQr.style.display = "none";
 
-    // 2. Avame järgmise punkti
-    const next = nextTaskMap[taskId];
+    updateDebugView();
+
+    const next = nextMap[taskId];
     if (next === 'finish') {
       document.getElementById("finish-btn").style.display = "block";
     } else {
@@ -316,17 +313,30 @@
     }
   }
 
+  function submitManualP3() {
+    const val = document.getElementById("input-p3").value.trim();
+    if (!val) return alert("Sisesta arv!");
+    const isOk = (val === "8" || val.toLowerCase() === "kaheksa");
+    saveAndAdvance('p3', `${val} (${isOk ? 'õige' : 'vale'})`, isOk ? 10 : 0);
+  }
+
+  function submitManualP4() {
+    const val = document.getElementById("input-p4").value.trim();
+    if (!val) return alert("Kirjuta vastus!");
+    saveAndAdvance('p4', val, 10);
+  }
+
   function startScanner(taskId) {
     document.getElementById("btn-qr-" + taskId).style.display = "none";
     qrScanner = new Html5Qrcode("reader-" + taskId);
-    qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
+    qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (txt) => {
       qrScanner.stop().then(() => {
         document.getElementById("reader-" + taskId).style.display = "none";
-        const clean = decodedText.trim();
+        const val = txt.trim();
         if (taskId === "p2") {
-          recordAnswer('p2', clean, clean.toUpperCase() === "METS2026");
+          saveAndAdvance('p2', `${val} (${val === 'METS2026' ? 'õige' : 'vale'})`, val === 'METS2026' ? 15 : 0);
         } else if (taskId === "p5") {
-          recordAnswer('p5', clean, clean.toUpperCase() === "FINIS2026");
+          saveAndAdvance('p5', `${val} (${val === 'FINIS2026' ? 'õige' : 'vale'})`, val === 'FINIS2026' ? 15 : 0);
         }
       });
     }).catch(() => alert("Kaamera viga!"));
@@ -344,13 +354,12 @@
     document.getElementById("final-score").innerText = score;
     document.getElementById("final-time").innerText = timeStr;
 
-    // Koostame kindla andmepaketi
     const payload = {
       teamName: teamName + (isTeacher ? " [ÕPETAJA TEST]" : ""),
       score: score,
       durationSeconds: seconds,
       durationText: timeStr,
-      answers: allAnswers
+      answers: answersLog
     };
 
     fetch(GOOGLE_SCRIPT_URL, {
@@ -364,7 +373,7 @@
       document.getElementById("upload-status").style.color = "#2e7d32";
     })
     .catch(() => {
-      document.getElementById("upload-status").innerText = "⚠️️ Tulemused kuvatakse ekraanil (võrguviga).";
+      document.getElementById("upload-status").innerText = "⚠️ Tulemused kuvatakse ekraanil (võrguviga).";
     });
   }
 </script>
